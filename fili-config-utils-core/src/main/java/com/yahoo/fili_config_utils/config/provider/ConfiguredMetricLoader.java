@@ -3,6 +3,7 @@
 package com.yahoo.fili_config_utils.config.provider;
 
 import com.yahoo.bard.webservice.data.config.metric.MetricLoader;
+import com.yahoo.bard.webservice.data.metric.LogicalMetric;
 import com.yahoo.fili_config_utils.config.provider.descriptor.MetricDescriptor;
 import com.yahoo.bard.webservice.data.metric.MetricDictionary;
 
@@ -32,8 +33,11 @@ public class ConfiguredMetricLoader implements MetricLoader {
 
     @Override
     public void loadMetricDictionary(MetricDictionary metricDictionary) {
-        metrics.stream()
-                .map(builder::buildMetric)
-                .forEach(metricDictionary::add);
+        for (MetricDescriptor m : metrics) {
+            LogicalMetric logicalMetric = builder.buildMetric(m);
+            if (!m.isExcluded()) {
+                metricDictionary.add(logicalMetric);
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@
 
 package com.yahoo.fili_config_utils.config.metric.parser;
 
+import com.yahoo.bard.webservice.data.metric.TemplateDruidQuery;
+import com.yahoo.bard.webservice.druid.model.postaggregation.PostAggregation;
 import com.yahoo.fili_config_utils.config.metric.antlrparser.FiliMetricBaseVisitor;
 import com.yahoo.fili_config_utils.config.metric.antlrparser.FiliMetricParser;
 import com.yahoo.bard.webservice.data.config.metric.makers.ArithmeticMaker;
@@ -53,14 +55,22 @@ public class FiliExpressionVisitor extends FiliMetricBaseVisitor<LogicalMetric> 
             FiliFilterVisitor filterVisitor = new FiliFilterVisitor(context);
             Filter filter = filterVisitor.visit(ctx.filterExp());
 
-            // I don't think we can have more than one aggregation here.
+            TemplateDruidQuery tdq = metric.getTemplateDruidQuery();
+
+            // To fix this we actually need to change the syntax slightly.
+            // A filter can be applied to an aggregate so ((longSum(foo)| a == 1) + longSum(bar)|b == 2) should be
+            // possible, but that won't parse currently.
+            if (!(tdq.getAggregations().size() == 1 && tdq.getPostAggregations().isEmpty())) {
+                throw new RuntimeException("Functionality not available; can only create a filtered view of a single metric currently.");
+            }
+
             Aggregation aggregation = metric
-                    .getTemplateDruidQuery()
-                    .getAggregations()
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new MetricParseException(
-                            "Filtered aggregation requires aggregation but could not find one"));
+                .getTemplateDruidQuery()
+                .getAggregations()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new MetricParseException(
+                    "Filtered aggregation requires aggregation but could not find one"));
 
             FilteredAggregationMaker maker = new FilteredAggregationMaker(context.scopedDict, aggregation, filter);
 
@@ -68,17 +78,43 @@ public class FiliExpressionVisitor extends FiliMetricBaseVisitor<LogicalMetric> 
             metric = maker.make(getNewName(), Collections.emptyList());
         }
 
-        // FIXME: this is kind of gross
-        LogicalMetric renamedMetric = new LogicalMetric(
-                metric.getTemplateDruidQuery(),
-                metric.getCalculation(),
-                context.name,
-                metric.getLongName(),
-                metric.getCategory(),
-                metric.getDescription()
-        );
+        // This works, kind of, but we also need to rename either a post-agg or agg in the template druid query
+        TemplateDruidQuery q = metric.getTemplateDruidQuery();
+        TemplateDruidQuery newQuery;
 
-        return renamedMetric;
+        // new TemplateDruidQuery(q.getAggregations(), q.getPostAggregations(), q.getInnerQuery(), q.getTimeGrain());
+        List<Aggregation> aggregations = q.getAggregations().stream().collect(Collectors.toList());
+        List<PostAggregation> postAggregations = q.getPostAggregations().stream().collect(Collectors.toList());
+
+        // post agg, rename top-level post-agg output
+        if (postAggregations.size() == 1) {
+            newQuery = new TemplateDruidQuery(
+                q.getAggregations(),
+                Collections.singleton(postAggregations.get(0).withName(context.name)),
+                q.getInnerQuery(),
+                q.getTimeGrain()
+            );
+        } else if (postAggregations.isEmpty() && aggregations.size() == 1) {
+            newQuery = new TemplateDruidQuery(
+                Collections.singleton(aggregations.get(0).withName(context.name)),
+                Collections.emptySet(),
+                q.getInnerQuery(),
+                q.getTimeGrain()
+            );
+        } else {
+            // Don't think this case should happen:
+            // if we have multiple aggregates, there should be 1 post-agg
+            throw new RuntimeException("Unable to rename correctly currently");
+        }
+
+        return new LogicalMetric(
+            newQuery,
+            metric.getCalculation(),
+            context.name,
+            metric.getLongName(),
+            metric.getCategory(),
+            metric.getDescription()
+        );
     }
 
     /**
