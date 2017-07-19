@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+
+    <artifactId>fili-jackson-config</artifactId>
+    <packaging>jar</packaging>
+    <name>Fili Jackson-based configuration</name>
+    <description> Configure your Fili with some Jackson </description>
+    <version>0.1.0</version>
+
+    <parent>
+        <groupId>com.yahoo.fili-config-utils</groupId>
+        <artifactId>fili-config-utils-parent-pom</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <checkstyle.config.location>../checkstyle-style.xml</checkstyle.config.location>
+        <checkstyle.suppressions.location>../checkstyle-suppressions.xml</checkstyle.suppressions.location>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.yahoo.fili</groupId>
+            <artifactId>fili</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.fili</groupId>
+            <artifactId>fili-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yahoo.fili-config-utils</groupId>
+            <artifactId>fili-metric-parser</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>yahoo.yinst.jcontrib_ojdbc7</groupId>
+            <artifactId>ojdbc7</artifactId>
+            <version>12.1.0.2_4</version>
+        </dependency>
+    </dependencies>
+</project>

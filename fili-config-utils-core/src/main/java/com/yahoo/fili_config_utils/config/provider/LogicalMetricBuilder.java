@@ -10,9 +10,6 @@ import com.yahoo.bard.webservice.data.metric.MetricDictionary;
 
 /**
  * Thing that is able to build a logical metric.
- *
- * Implementers would be wise to take the metric dictionary,
- * dimension dictionary, etc as parameters.
  */
 public abstract class LogicalMetricBuilder {
 
@@ -41,7 +38,7 @@ public abstract class LogicalMetricBuilder {
      *
      * @param metric  The metric configuration
      *
-     * @return A logical metric
+     * @return A logical metric. Up to the caller to add to the real metric dictionary.
      */
     public abstract LogicalMetric buildMetric(MetricDescriptor metric);
 }
