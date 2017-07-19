@@ -46,11 +46,5 @@
             <groupId>com.yahoo.fili-config-utils</groupId>
             <artifactId>fili-metric-parser</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>yahoo.yinst.jcontrib_ojdbc7</groupId>
-            <artifactId>ojdbc7</artifactId>
-            <version>12.1.0.2_4</version>
-        </dependency>
     </dependencies>
 </project>
